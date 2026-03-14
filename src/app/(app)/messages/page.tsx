@@ -8,6 +8,12 @@ import { formatDateTime } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+type ThreadListItem = {
+  id: string;
+  updated_at: string;
+  participant: { full_name?: string } | null;
+};
+
 type MessagesPageProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
@@ -32,11 +38,7 @@ export default async function MessagesPage({ searchParams }: MessagesPageProps) 
   let threadId = getParam(params, "thread");
   let threadLabel = "Care Thread";
   let patientHasAssignedProvider = true;
-  let providerThreads: Array<{
-    id: string;
-    updated_at: string;
-    patient: { full_name?: string } | null;
-  }> = [];
+  let threads: ThreadListItem[] = [];
   let messages: Array<{
     id: string;
     sender_id: string;
@@ -48,11 +50,23 @@ export default async function MessagesPage({ searchParams }: MessagesPageProps) 
     patientHasAssignedProvider = Boolean(await getAssignedProviderId(profile.id));
     const threadResult = await supabase
       .from("message_threads")
-      .select("id")
+      .select(
+        "id,updated_at, provider:profiles!message_threads_provider_id_fkey(full_name)",
+      )
       .eq("patient_id", profile.id)
-      .maybeSingle();
+      .order("updated_at", { ascending: false })
+      .limit(20);
 
-    threadId = threadResult.data?.id ? String(threadResult.data.id) : null;
+    threads =
+      ((threadResult.data as Array<{
+        id: string;
+        updated_at: string;
+        provider: { full_name?: string } | null;
+      }>) ?? []).map((thread) => ({
+        id: String(thread.id),
+        updated_at: thread.updated_at,
+        participant: thread.provider,
+      }));
   } else {
     const threadResult = await supabase
       .from("message_threads")
@@ -61,25 +75,31 @@ export default async function MessagesPage({ searchParams }: MessagesPageProps) 
       .order("updated_at", { ascending: false })
       .limit(20);
 
-    providerThreads =
+    threads =
       (threadResult.data as Array<{
         id: string;
         updated_at: string;
         patient: { full_name?: string } | null;
-      }>) ?? [];
+      }>)?.map((thread) => ({
+        id: String(thread.id),
+        updated_at: thread.updated_at,
+        participant: thread.patient,
+      })) ?? [];
+  }
 
-    if (!threadId && providerThreads.length > 0) {
-      threadId = String(providerThreads[0].id);
-    }
+  if (!threadId && threads.length > 0) {
+    threadId = threads[0].id;
+  }
 
-    const selected = providerThreads.find(
-      (thread) => String(thread.id) === threadId,
-    );
-    if (selected) {
-      threadLabel = `Patient: ${String(
-        (selected.patient as { full_name?: string } | null)?.full_name ?? "Unknown",
-      )}`;
-    }
+  const selectedThread =
+    threads.find((thread) => thread.id === threadId) ?? threads[0] ?? null;
+
+  if (selectedThread) {
+    threadId = selectedThread.id;
+    threadLabel =
+      profile.role === "provider"
+        ? `Patient: ${String(selectedThread.participant?.full_name ?? "Unknown")}`
+        : `Provider: ${String(selectedThread.participant?.full_name ?? "Care team")}`;
   }
 
   if (threadId) {
@@ -105,9 +125,9 @@ export default async function MessagesPage({ searchParams }: MessagesPageProps) 
       {profile.role === "provider" ? (
         <Card>
           <h2 className="text-lg font-semibold">Open threads</h2>
-          {providerThreads.length > 0 ? (
+          {threads.length > 0 ? (
             <ul className="mt-3 space-y-2">
-              {providerThreads.map((thread) => {
+              {threads.map((thread) => {
                 const isSelected = thread.id === threadId;
                 return (
                   <li key={thread.id}>
@@ -119,7 +139,7 @@ export default async function MessagesPage({ searchParams }: MessagesPageProps) 
                           : "bg-[var(--color-panel-alt)] text-[var(--color-text)]"
                       }`}
                     >
-                      {String(thread.patient?.full_name ?? "Unknown patient")}
+                      {String(thread.participant?.full_name ?? "Unknown patient")}
                     </Link>
                   </li>
                 );
@@ -136,6 +156,31 @@ export default async function MessagesPage({ searchParams }: MessagesPageProps) 
           >
             Open patient list
           </Link>
+        </Card>
+      ) : null}
+
+      {profile.role === "patient" && threads.length > 1 ? (
+        <Card>
+          <h2 className="text-lg font-semibold">Care threads</h2>
+          <ul className="mt-3 space-y-2">
+            {threads.map((thread) => {
+              const isSelected = thread.id === threadId;
+              return (
+                <li key={thread.id}>
+                  <Link
+                    href={`/messages?thread=${thread.id}`}
+                    className={`block rounded-lg px-3 py-2 text-sm ${
+                      isSelected
+                        ? "bg-[var(--color-accent)] text-white"
+                        : "bg-[var(--color-panel-alt)] text-[var(--color-text)]"
+                    }`}
+                  >
+                    {String(thread.participant?.full_name ?? "Care team")}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </Card>
       ) : null}
 

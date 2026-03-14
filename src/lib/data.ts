@@ -78,15 +78,19 @@ export async function getPatientDashboardData(
       .from("message_threads")
       .select("id")
       .eq("patient_id", patientId)
-      .maybeSingle<{ id: string }>(),
+      .order("updated_at", { ascending: false })
+      .limit(20),
   ]);
 
   let latestMessage: Message | null = null;
-  if (threadResult.data?.id) {
+  const threadIds =
+    ((threadResult.data as Array<{ id: string }> | null) ?? []).map((thread) => thread.id);
+
+  if (threadIds.length > 0) {
     const messageResult = await supabase
       .from("messages")
       .select("*")
-      .eq("thread_id", threadResult.data.id)
+      .in("thread_id", threadIds)
       .order("sent_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -224,6 +228,8 @@ export async function getMessagesForViewer(profileId: string, role: string) {
     .from("message_threads")
     .select("*")
     .eq(threadColumn, profileId)
+    .order("updated_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
 
   const thread = (threadResult.data as MessageThread | null) ?? null;
