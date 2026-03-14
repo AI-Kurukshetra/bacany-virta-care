@@ -54,6 +54,15 @@ function buildRedirect(path: string, error: string) {
   return `${path}?${params.toString()}`;
 }
 
+function buildMessagesRedirect(error: string, threadId?: string) {
+  const params = new URLSearchParams();
+  params.set("error", error);
+  if (threadId) {
+    params.set("thread", threadId);
+  }
+  return `/messages?${params.toString()}`;
+}
+
 export async function completeOnboarding(formData: FormData) {
   const profile = await requireProfile("patient");
   const supabase = await createServerSupabaseClient();
@@ -225,47 +234,102 @@ export async function sendMessage(formData: FormData) {
       const providerId = await getAssignedProviderId(profile.id);
       if (!providerId) {
         redirect(
-          buildRedirect(
-            "/messages",
+          buildMessagesRedirect(
             "No provider assigned yet. Messaging unlocks once a provider is linked.",
           ),
         );
       }
 
-      const threadInsert = await supabase
+      const existingThread = await supabase
         .from("message_threads")
-        .insert({
-          patient_id: profile.id,
-          provider_id: providerId,
-        })
         .select("id")
-        .single();
+        .eq("patient_id", profile.id)
+        .eq("provider_id", providerId)
+        .maybeSingle<{ id: string }>();
 
-      if (!threadInsert.data?.id) {
-        throw new Error("Unable to create message thread.");
+      if (existingThread.error) {
+        redirect(
+          buildMessagesRedirect(
+            `Unable to load your care thread: ${existingThread.error.message}`,
+          ),
+        );
       }
-      threadId = threadInsert.data.id as string;
+
+      if (existingThread.data?.id) {
+        threadId = existingThread.data.id;
+      } else {
+        const threadInsert = await supabase
+          .from("message_threads")
+          .insert({
+            patient_id: profile.id,
+            provider_id: providerId,
+          })
+          .select("id")
+          .single();
+
+        if (threadInsert.error) {
+          const duplicateThread = await supabase
+            .from("message_threads")
+            .select("id")
+            .eq("patient_id", profile.id)
+            .eq("provider_id", providerId)
+            .maybeSingle<{ id: string }>();
+
+          if (duplicateThread.data?.id) {
+            threadId = duplicateThread.data.id;
+          } else {
+            redirect(
+              buildMessagesRedirect(
+                `Unable to create message thread: ${threadInsert.error.message}`,
+              ),
+            );
+          }
+        } else if (threadInsert.data?.id) {
+          threadId = threadInsert.data.id as string;
+        }
+      }
+
+      if (!threadId) {
+        redirect(buildMessagesRedirect("Unable to open a message thread."));
+      }
     } else {
       redirect(
-        buildRedirect(
-          "/messages",
+        buildMessagesRedirect(
           "Select a patient thread before sending a provider message.",
         ),
       );
     }
   }
 
-  await supabase.from("messages").insert({
+  const messageInsert = await supabase.from("messages").insert({
     thread_id: threadId,
     sender_id: profile.id,
     body: parsed.body,
     sent_at: new Date().toISOString(),
   });
 
-  await supabase
+  if (messageInsert.error) {
+    redirect(
+      buildMessagesRedirect(
+        `Unable to send message: ${messageInsert.error.message}`,
+        threadId,
+      ),
+    );
+  }
+
+  const threadUpdate = await supabase
     .from("message_threads")
     .update({ updated_at: new Date().toISOString() })
     .eq("id", threadId);
+
+  if (threadUpdate.error) {
+    redirect(
+      buildMessagesRedirect(
+        `Message sent, but thread refresh failed: ${threadUpdate.error.message}`,
+        threadId,
+      ),
+    );
+  }
 
   revalidatePath("/messages");
   revalidatePath("/dashboard");

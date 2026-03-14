@@ -24,6 +24,8 @@ cp .env.example .env.local
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - Optional: `NEXT_PUBLIC_APP_URL` (defaults to `http://localhost:3000`)
+- Keep local development pointed at a non-production Supabase project when possible. This app can write real data through shared credentials.
+- Provider demo seeding is disabled by default. Only enable it intentionally with `ENABLE_PROVIDER_DEMO_DATA=true` in local development against disposable data.
 
 4. Apply schema and seed in Supabase SQL Editor:
 - Run [`supabase/migrations/202603140001_init.sql`](supabase/migrations/202603140001_init.sql)
@@ -78,8 +80,32 @@ npm run build
 ```
 
 ## Deploy to Vercel
-1. Import the project into Vercel.
-2. Set the same environment variables from `.env.local` in Vercel Project Settings.
-3. Deploy.
+1. Sign in with the Vercel CLI:
+```bash
+vercel login
+```
 
-Vercel will automatically run `next build` with the existing scripts in `package.json`.
+2. Link the repository to a Vercel project from the repo root:
+```bash
+vercel link
+```
+
+3. Add the required runtime environment variables:
+```bash
+vercel env add NEXT_PUBLIC_APP_URL
+vercel env add NEXT_PUBLIC_SUPABASE_URL
+vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
+vercel env add SUPABASE_SERVICE_ROLE_KEY
+```
+
+4. Create a preview deployment:
+```bash
+vercel deploy
+```
+
+5. Promote to production when ready:
+```bash
+vercel --prod
+```
+
+Vercel will run `next build` using the existing scripts in `package.json`.

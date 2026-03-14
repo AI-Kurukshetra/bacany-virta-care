@@ -123,7 +123,7 @@ export async function requireProfile(requiredRole?: UserRole): Promise<Profile> 
   if (
     profile.role === "provider" &&
     hasSupabaseAdminEnv() &&
-    process.env.NODE_ENV !== "production"
+    process.env.ENABLE_PROVIDER_DEMO_DATA === "true"
   ) {
     await ensureProviderDemoData(profile.id);
   }
