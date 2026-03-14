@@ -1,64 +1,88 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
-export default function Home() {
+type HomeProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function getParam(
+  params: Record<string, string | string[] | undefined>,
+  key: string,
+): string | null {
+  const value = params[key];
+  if (!value) {
+    return null;
+  }
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function Home({ searchParams }: HomeProps) {
+  const params = await searchParams;
+  const setupError = getParam(params, "error");
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen px-4 py-10 sm:px-6 lg:px-10">
+      <main className="mx-auto grid w-full max-w-7xl gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+        <section className="animate-fade-in rounded-3xl border border-black/5 bg-[var(--color-panel)] p-8 shadow-[0_30px_60px_-35px_rgba(15,118,110,0.45)] sm:p-10">
+          <p className="inline-flex rounded-full bg-[var(--color-panel-alt)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--color-accent-strong)]">
+            VirtaCare MVP
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+          <h1 className="mt-5 max-w-2xl text-4xl font-extrabold leading-tight sm:text-5xl">
+            Reverse chronic disease trajectories with continuous remote care.
+          </h1>
+          <p className="mt-5 max-w-xl text-base leading-7 text-[var(--color-muted)] sm:text-lg">
+            A production-ready patient and provider platform with secure auth,
+            biomarker intelligence, and structured care workflows powered by
+            Next.js and Supabase.
+          </p>
+          {setupError ? (
+            <p className="mt-5 rounded-xl bg-amber-100 px-4 py-3 text-sm text-amber-800">
+              {setupError}
+            </p>
+          ) : null}
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link href="/auth/signup">
+              <Button className="px-6 py-3 text-sm">Create account</Button>
+            </Link>
+            <Link href="/auth/login">
+              <Button variant="secondary" className="px-6 py-3 text-sm">
+                Sign in
+              </Button>
+            </Link>
+          </div>
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
+            <article className="rounded-xl bg-[var(--color-panel-alt)] p-4">
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-muted)]">
+                Monitoring
+              </p>
+              <p className="mt-2 text-xl font-bold">30-day glucose trends</p>
+            </article>
+            <article className="rounded-xl bg-[var(--color-panel-alt)] p-4">
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-muted)]">
+                Adherence
+              </p>
+              <p className="mt-2 text-xl font-bold">Medication + nutrition logs</p>
+            </article>
+            <article className="rounded-xl bg-[var(--color-panel-alt)] p-4">
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-muted)]">
+                Care Team
+              </p>
+              <p className="mt-2 text-xl font-bold">Secure care messaging</p>
+            </article>
+          </div>
+        </section>
+
+        <section className="animate-fade-in rounded-3xl border border-black/5 bg-gradient-to-b from-[#0f766e] to-[#115e59] p-8 text-white shadow-[0_30px_60px_-35px_rgba(17,94,89,0.7)] sm:p-10">
+          <h2 className="text-2xl font-bold">What is included in this MVP</h2>
+          <ul className="mt-6 space-y-3 text-sm text-teal-50">
+            <li>Role-based auth with email/password and magic link support</li>
+            <li>Patient dashboard with glucose trends and biomarker snapshots</li>
+            <li>Provider views for assigned patients and risk flags</li>
+            <li>Onboarding, food logs, medication tracking, appointments</li>
+            <li>Supabase SQL migration + seed script for realistic demo data</li>
+            <li>Vercel-ready deployment configuration and documentation</li>
+          </ul>
+        </section>
       </main>
     </div>
   );
