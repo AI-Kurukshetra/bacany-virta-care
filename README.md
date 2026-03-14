@@ -1,4 +1,4 @@
-# VirtaCare
+# bacancy-vitra-care
 
 Production-ready Next.js App Router application for remote chronic disease care, with Supabase auth/database integration, role-aware dashboards, and seed data for a populated first run.
 
@@ -37,8 +37,10 @@ npm run dev
 Open `http://localhost:3000`.
 
 ## Demo Accounts (from seed)
-- Provider: `demo.provider@virtacare.app` / `Password123!`
-- Patient: `demo.patient@virtacare.app` / `Password123!`
+- Provider: `provider1@virtacare.app` / `Test@123`
+- Provider: `provider2@virtacare.app` / `Test@123`
+- Patient: `patient1@virtacare.app` / `Test@123`
+- Patient: `patient2@virtacare.app` / `Test@123`
 
 ## App Routes
 - Public:

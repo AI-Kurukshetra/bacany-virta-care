@@ -28,7 +28,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     <div className="flex min-h-screen items-center justify-center px-4 py-10">
       <Card className="w-full max-w-md animate-fade-in">
         <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-muted)]">
-          VirtaCare
+          bacancy-vitra-care
         </p>
         <h1 className="mt-2 text-3xl font-bold">Sign in</h1>
         <p className="mt-2 text-sm text-[var(--color-muted)]">
@@ -72,7 +72,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </form>
 
         <p className="mt-6 text-sm text-[var(--color-muted)]">
-          New to VirtaCare?{" "}
+          New to bacancy-vitra-care?{" "}
           <Link className="font-semibold text-[var(--color-accent-strong)]" href="/auth/signup">
             Create an account
           </Link>
@@ -81,3 +81,4 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     </div>
   );
 }
+

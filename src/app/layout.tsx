@@ -14,7 +14,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VirtaCare",
+  title: "bacancy-vitra-care",
   description:
     "AI-powered chronic disease management platform for remote metabolic care.",
 };
@@ -42,3 +42,4 @@ export default function RootLayout({
     </html>
   );
 }
+

@@ -35,7 +35,7 @@ export function AppShell({ children, fullName, role }: AppShellProps) {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div>
             <Link href="/" className="text-lg font-bold tracking-tight">
-              VirtaCare
+              bacancy-vitra-care
             </Link>
             <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-muted)]">
               Remote Metabolic Care
@@ -73,3 +73,4 @@ export function AppShell({ children, fullName, role }: AppShellProps) {
     </div>
   );
 }
+

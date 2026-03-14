@@ -22,7 +22,7 @@ function deriveName(user: User): string {
     return user.email.split("@")[0].replace(/[._-]/g, " ");
   }
 
-  return "VirtaCare User";
+  return "bacancy-vitra-care user";
 }
 
 export async function getCurrentUser(): Promise<User | null> {
@@ -104,3 +104,4 @@ export async function getAssignedProviderId(
 
   return data?.provider_id ?? null;
 }
+

@@ -26,7 +26,7 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
     <div className="flex min-h-screen items-center justify-center px-4 py-10">
       <Card className="w-full max-w-md animate-fade-in">
         <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-muted)]">
-          VirtaCare
+          bacancy-vitra-care
         </p>
         <h1 className="mt-2 text-3xl font-bold">Create account</h1>
         <p className="mt-2 text-sm text-[var(--color-muted)]">
@@ -74,3 +74,4 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
     </div>
   );
 }
+
