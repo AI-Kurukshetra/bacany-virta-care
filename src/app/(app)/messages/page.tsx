@@ -2,7 +2,7 @@ import Link from "next/link";
 import { sendMessage } from "@/app/actions/records";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { requireProfile } from "@/lib/auth";
+import { getAssignedProviderId, requireProfile } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/utils";
 
@@ -27,9 +27,11 @@ export default async function MessagesPage({ searchParams }: MessagesPageProps) 
   const profile = await requireProfile();
   const supabase = await createServerSupabaseClient();
   const params = await searchParams;
+  const error = getParam(params, "error");
 
   let threadId = getParam(params, "thread");
   let threadLabel = "Care Thread";
+  let patientHasAssignedProvider = true;
   let providerThreads: Array<{
     id: string;
     updated_at: string;
@@ -43,6 +45,7 @@ export default async function MessagesPage({ searchParams }: MessagesPageProps) 
   }> = [];
 
   if (profile.role === "patient") {
+    patientHasAssignedProvider = Boolean(await getAssignedProviderId(profile.id));
     const threadResult = await supabase
       .from("message_threads")
       .select("id")
@@ -138,6 +141,11 @@ export default async function MessagesPage({ searchParams }: MessagesPageProps) 
 
       <Card>
         <h2 className="text-xl font-semibold">{threadLabel}</h2>
+        {error ? (
+          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            {error}
+          </div>
+        ) : null}
         <div className="mt-4 max-h-[420px] space-y-3 overflow-y-auto rounded-xl bg-[var(--color-panel-alt)] p-4">
           {messages.map((message) => {
             const isSelf = message.sender_id === profile.id;
@@ -162,20 +170,26 @@ export default async function MessagesPage({ searchParams }: MessagesPageProps) 
           ) : null}
         </div>
 
-        <form action={sendMessage} className="mt-4 space-y-3">
-          <input type="hidden" name="thread_id" value={threadId ?? ""} />
-          <div>
-            <label htmlFor="body">Message</label>
-            <textarea
-              id="body"
-              name="body"
-              rows={3}
-              placeholder="Share update, concern, or question."
-              required
-            />
+        {profile.role === "patient" && !patientHasAssignedProvider ? (
+          <div className="mt-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel-alt)] px-4 py-4 text-sm text-[var(--color-muted)]">
+            Messaging will be available once a provider is assigned to your account.
           </div>
-          <Button type="submit">Send message</Button>
-        </form>
+        ) : (
+          <form action={sendMessage} className="mt-4 space-y-3">
+            <input type="hidden" name="thread_id" value={threadId ?? ""} />
+            <div>
+              <label htmlFor="body">Message</label>
+              <textarea
+                id="body"
+                name="body"
+                rows={3}
+                placeholder="Share update, concern, or question."
+                required
+              />
+            </div>
+            <Button type="submit">Send message</Button>
+          </form>
+        )}
       </Card>
     </div>
   );

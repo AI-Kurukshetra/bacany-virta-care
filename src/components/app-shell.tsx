@@ -28,41 +28,49 @@ const providerLinks = [
 
 export function AppShell({ children, fullName, role }: AppShellProps) {
   const links = role === "provider" ? providerLinks : patientLinks;
+  const roleLabel = role === "provider" ? "Care provider" : "Patient";
 
   return (
     <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
-      <header className="sticky top-0 z-20 border-b border-black/10 bg-[var(--color-panel)]/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <div>
-            <Link href="/" className="text-lg font-bold tracking-tight">
+      <header className="sticky top-0 z-20 border-b border-[var(--color-border)] bg-[var(--color-panel)]/85 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+          <div className="relative">
+            <div className="absolute -left-2 top-1/2 h-8 w-1 -translate-y-1/2 rounded-full bg-[var(--color-accent)]/70" />
+            <Link href="/" className="text-3xl font-bold leading-none tracking-[-0.03em]">
               bacancy-vitra-care
             </Link>
-            <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-muted)]">
+            <p className="mt-1 text-xs uppercase tracking-[0.24em] text-[var(--color-muted)]">
               Remote Metabolic Care
             </p>
           </div>
-          <div className="text-right">
-            <p className="text-sm font-medium">{fullName}</p>
-            <p className="text-xs text-[var(--color-muted)]">{role}</p>
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel-alt)] px-4 py-2 text-right shadow-[0_10px_30px_-24px_rgba(11,77,70,0.7)]">
+            <p className="text-sm font-semibold">{fullName}</p>
+            <p className="text-xs uppercase tracking-[0.11em] text-[var(--color-muted)]">
+              {roleLabel}
+            </p>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[220px_minmax(0,1fr)]">
-        <aside className="rounded-2xl border border-black/5 bg-[var(--color-panel)] p-4">
-          <nav className="space-y-1">
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-7 sm:px-6 lg:grid-cols-[248px_minmax(0,1fr)]">
+        <aside className="h-fit rounded-3xl border border-[var(--color-border)] bg-[var(--color-panel)] p-4 shadow-[0_26px_70px_-52px_rgba(12,82,73,0.85)] lg:sticky lg:top-24">
+          <nav className="space-y-1.5">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="block rounded-lg px-3 py-2 text-sm font-medium hover:bg-[var(--color-panel-alt)]"
+                className="block rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold text-[var(--color-text)] transition-all duration-200 hover:-translate-y-px hover:border-[var(--color-border)] hover:bg-[var(--color-panel-alt)]"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
-          <form action={signOutAction} className="mt-4 border-t border-black/10 pt-4">
-            <Button type="submit" variant="ghost" className="w-full justify-start">
+          <form action={signOutAction} className="mt-5 border-t border-[var(--color-border)] pt-4">
+            <Button
+              type="submit"
+              variant="ghost"
+              className="w-full justify-start rounded-xl border border-[var(--color-border)] px-3 py-2.5 font-semibold"
+            >
               Sign out
             </Button>
           </form>

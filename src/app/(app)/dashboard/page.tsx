@@ -24,10 +24,10 @@ export default async function DashboardPage() {
     return (
       <div className="space-y-6 animate-fade-in">
         <header>
-          <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-muted)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.17em] text-[var(--color-muted)]">
             Provider Command Center
           </p>
-          <h1 className="mt-1 text-3xl font-bold">Today&apos;s care snapshot</h1>
+          <h1 className="mt-1 text-4xl font-bold tracking-[-0.03em]">Today&apos;s care snapshot</h1>
         </header>
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -38,11 +38,11 @@ export default async function DashboardPage() {
         </section>
 
         <Card>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <h2 className="text-xl font-semibold">Assigned patient panel</h2>
             <Link
               href="/provider/patients"
-              className="text-sm font-semibold text-[var(--color-accent-strong)]"
+              className="rounded-xl bg-[var(--color-accent-soft)] px-3 py-1.5 text-sm font-semibold text-[var(--color-accent-strong)] transition-all hover:-translate-y-px hover:brightness-[0.98]"
             >
               View all
             </Link>
@@ -96,14 +96,14 @@ export default async function DashboardPage() {
     <div className="space-y-6 animate-fade-in">
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.16em] text-[var(--color-muted)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.17em] text-[var(--color-muted)]">
             Patient Dashboard
           </p>
-          <h1 className="mt-1 text-3xl font-bold">Your metabolic progress</h1>
+          <h1 className="mt-1 text-4xl font-bold tracking-[-0.03em]">Your metabolic progress</h1>
         </div>
         <Link
           href="/onboarding"
-          className="rounded-xl bg-[var(--color-panel)] px-4 py-2 text-sm font-semibold text-[var(--color-accent-strong)]"
+          className="rounded-xl border border-[var(--color-border)] bg-[var(--color-panel)] px-4 py-2 text-sm font-semibold text-[var(--color-accent-strong)] shadow-[0_18px_40px_-34px_rgba(12,82,73,0.8)] transition-all hover:-translate-y-px hover:bg-[var(--color-panel-alt)]"
         >
           Update onboarding
         </Link>
@@ -146,7 +146,7 @@ export default async function DashboardPage() {
               <li key={medication.id} className="rounded-lg bg-[var(--color-panel-alt)] p-3">
                 <p className="font-semibold">{medication.name}</p>
                 <p className="text-[var(--color-muted)]">
-                  {medication.dosage} • {medication.frequency}
+                  {`${medication.dosage} - ${medication.frequency}`}
                 </p>
               </li>
             ))}
@@ -181,4 +181,5 @@ export default async function DashboardPage() {
     </div>
   );
 }
+
 

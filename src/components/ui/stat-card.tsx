@@ -9,12 +9,14 @@ type StatCardProps = {
 export function StatCard({ label, value, helper }: StatCardProps) {
   return (
     <Card className="min-h-30">
-      <p className="text-sm font-medium text-[var(--color-muted)]">{label}</p>
-      <p className="mt-3 text-3xl font-bold tracking-tight text-[var(--color-text)]">
+      <p className="text-[0.73rem] font-bold uppercase tracking-[0.12em] text-[var(--color-muted)]">
+        {label}
+      </p>
+      <p className="mt-2 text-[2.25rem] font-bold leading-[1.08] tracking-[-0.03em] text-[var(--color-text)]">
         {value}
       </p>
       {helper ? (
-        <p className="mt-2 text-xs text-[var(--color-muted)]">{helper}</p>
+        <p className="mt-2 text-xs font-medium text-[var(--color-muted)]">{helper}</p>
       ) : null}
     </Card>
   );

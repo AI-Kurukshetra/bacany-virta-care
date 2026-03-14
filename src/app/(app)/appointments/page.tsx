@@ -1,15 +1,39 @@
 import { addAppointment } from "@/app/actions/records";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { requireProfile } from "@/lib/auth";
+import { getAssignedProviderId, requireProfile } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export default async function AppointmentsPage() {
+type AppointmentsPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function getParam(
+  params: Record<string, string | string[] | undefined>,
+  key: string,
+): string | null {
+  const value = params[key];
+  if (!value) {
+    return null;
+  }
+
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function AppointmentsPage({
+  searchParams,
+}: AppointmentsPageProps) {
   const profile = await requireProfile();
   const supabase = await createServerSupabaseClient();
+  const params = await searchParams;
+  const error = getParam(params, "error");
+  const assignedProviderId =
+    profile.role === "patient" ? await getAssignedProviderId(profile.id) : null;
+  const hasAssignedProvider =
+    profile.role === "provider" ? true : Boolean(assignedProviderId);
 
   const query = supabase
     .from("appointments")
@@ -40,25 +64,36 @@ export default async function AppointmentsPage() {
       {profile.role === "patient" ? (
         <Card className="max-w-3xl">
           <h2 className="text-xl font-semibold">Request appointment</h2>
-          <form action={addAppointment} className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div>
-              <label htmlFor="starts_at">Requested date/time</label>
-              <input id="starts_at" name="starts_at" type="datetime-local" required />
+          {error ? (
+            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              {error}
             </div>
-            <div>
-              <label htmlFor="reason">Reason</label>
-              <input
-                id="reason"
-                name="reason"
-                type="text"
-                placeholder="Review glucose spikes after dinner."
-                required
-              />
+          ) : null}
+          {hasAssignedProvider ? (
+            <form action={addAppointment} className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label htmlFor="starts_at">Requested date/time</label>
+                <input id="starts_at" name="starts_at" type="datetime-local" required />
+              </div>
+              <div>
+                <label htmlFor="reason">Reason</label>
+                <input
+                  id="reason"
+                  name="reason"
+                  type="text"
+                  placeholder="Review glucose spikes after dinner."
+                  required
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <Button type="submit">Submit request</Button>
+              </div>
+            </form>
+          ) : (
+            <div className="mt-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-panel-alt)] px-4 py-4 text-sm text-[var(--color-muted)]">
+              Appointment requests will be available once a provider is assigned to your care plan.
             </div>
-            <div className="sm:col-span-2">
-              <Button type="submit">Submit request</Button>
-            </div>
-          </form>
+          )}
         </Card>
       ) : null}
 

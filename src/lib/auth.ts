@@ -1,5 +1,10 @@
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
+import { hasSupabaseAdminEnv } from "@/lib/env";
+import {
+  assignDefaultProvider,
+  ensureProviderDemoData,
+} from "@/lib/provider-assignment";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Profile, UserRole } from "@/lib/types";
 
@@ -45,12 +50,21 @@ export async function requireUser(): Promise<User> {
 
 async function ensureProfile(user: User): Promise<Profile> {
   const supabase = await createServerSupabaseClient();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single<Profile>();
+  const readProfile = async (): Promise<Profile | null> => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle<Profile>();
 
+    if (error) {
+      throw new Error(`Unable to read profile: ${error.message}`);
+    }
+
+    return data;
+  };
+
+  const profile = await readProfile();
   if (profile) {
     return profile;
   }
@@ -63,22 +77,39 @@ async function ensureProfile(user: User): Promise<Profile> {
     timezone: "America/New_York",
   };
 
-  const { error } = await supabase.from("profiles").insert(insertPayload);
-  if (error) {
-    throw new Error(`Unable to create profile: ${error.message}`);
-  }
-
-  const { data: createdProfile, error: createdProfileError } = await supabase
+  const { data: upsertedProfile, error: upsertError } = await supabase
     .from("profiles")
+    .upsert(insertPayload, { onConflict: "id" })
     .select("*")
-    .eq("id", user.id)
-    .single<Profile>();
+    .maybeSingle<Profile>();
 
-  if (createdProfileError || !createdProfile) {
-    throw new Error("Profile creation completed but profile could not be read.");
+  if (upsertError) {
+    throw new Error(`Unable to create profile: ${upsertError.message}`);
   }
 
-  return createdProfile;
+  if (upsertedProfile) {
+    return upsertedProfile;
+  }
+
+  for (const delayMs of [50, 100, 200]) {
+    const createdProfile = await readProfile();
+    if (createdProfile) {
+      return createdProfile;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+
+  const now = new Date().toISOString();
+  return {
+    id: user.id,
+    role: insertPayload.role,
+    full_name: insertPayload.full_name,
+    avatar_url: null,
+    timezone: insertPayload.timezone,
+    created_at: now,
+    updated_at: now,
+  };
 }
 
 export async function requireProfile(requiredRole?: UserRole): Promise<Profile> {
@@ -87,6 +118,14 @@ export async function requireProfile(requiredRole?: UserRole): Promise<Profile> 
 
   if (requiredRole && profile.role !== requiredRole) {
     redirect("/dashboard");
+  }
+
+  if (
+    profile.role === "provider" &&
+    hasSupabaseAdminEnv() &&
+    process.env.NODE_ENV !== "production"
+  ) {
+    await ensureProviderDemoData(profile.id);
   }
 
   return profile;
@@ -100,8 +139,18 @@ export async function getAssignedProviderId(
     .from("patient_provider_assignments")
     .select("provider_id")
     .eq("patient_id", patientId)
+    .order("created_at", { ascending: true })
+    .limit(1)
     .maybeSingle<{ provider_id: string }>();
 
-  return data?.provider_id ?? null;
+  if (data?.provider_id) {
+    return data.provider_id;
+  }
+
+  if (!hasSupabaseAdminEnv()) {
+    return null;
+  }
+
+  return assignDefaultProvider(patientId);
 }
 

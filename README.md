@@ -36,11 +36,24 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+## Supabase Auth URL Configuration
+To make email verification + magic link work on both local and Vercel:
+
+1. In Supabase dashboard, open `Authentication -> URL Configuration`
+2. Set `Site URL` to:
+   - `https://bacany-virta-care.vercel.app`
+3. Add these `Redirect URLs`:
+   - `http://localhost:3000/**`
+   - `http://localhost:3005/**`
+   - `https://bacany-virta-care.vercel.app/**`
+   - Optional for previews: `https://*-<your-vercel-team>.vercel.app/**`
+
 ## Demo Accounts (from seed)
 - Provider: `provider1@virtacare.app` / `Test@123`
 - Provider: `provider2@virtacare.app` / `Test@123`
 - Patient: `patient1@virtacare.app` / `Test@123`
 - Patient: `patient2@virtacare.app` / `Test@123`
+- Patient: `patient3@virtacare.app` / `Test@123`
 
 ## App Routes
 - Public:

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getAssignedProviderId, requireProfile } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -46,6 +47,12 @@ const onboardingSchema = z.object({
   dietary_preference: z.string().min(3).max(100),
   activity_level: z.enum(["low", "moderate", "high"]),
 });
+
+function buildRedirect(path: string, error: string) {
+  const params = new URLSearchParams();
+  params.set("error", error);
+  return `${path}?${params.toString()}`;
+}
 
 export async function completeOnboarding(formData: FormData) {
   const profile = await requireProfile("patient");
@@ -187,7 +194,12 @@ export async function addAppointment(formData: FormData) {
 
   const providerId = await getAssignedProviderId(profile.id);
   if (!providerId) {
-    throw new Error("No provider assigned to this patient.");
+    redirect(
+      buildRedirect(
+        "/appointments",
+        "No provider assigned yet. Ask your care team to link your account.",
+      ),
+    );
   }
 
   await supabase.from("appointments").insert({
@@ -212,7 +224,12 @@ export async function sendMessage(formData: FormData) {
     if (profile.role === "patient") {
       const providerId = await getAssignedProviderId(profile.id);
       if (!providerId) {
-        throw new Error("No provider assigned to this patient.");
+        redirect(
+          buildRedirect(
+            "/messages",
+            "No provider assigned yet. Messaging unlocks once a provider is linked.",
+          ),
+        );
       }
 
       const threadInsert = await supabase
@@ -229,7 +246,12 @@ export async function sendMessage(formData: FormData) {
       }
       threadId = threadInsert.data.id as string;
     } else {
-      throw new Error("Provider thread creation requires a selected patient.");
+      redirect(
+        buildRedirect(
+          "/messages",
+          "Select a patient thread before sending a provider message.",
+        ),
+      );
     }
   }
 

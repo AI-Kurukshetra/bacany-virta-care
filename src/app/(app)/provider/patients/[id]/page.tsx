@@ -105,7 +105,7 @@ export default async function ProviderPatientDetailPage({
               <li key={medication.id} className="rounded-lg bg-[var(--color-panel-alt)] p-3">
                 <p className="font-semibold">{medication.name}</p>
                 <p className="text-[var(--color-muted)]">
-                  {medication.dosage} • {medication.frequency}
+                  {`${medication.dosage} - ${medication.frequency}`}
                 </p>
               </li>
             ))}
@@ -151,4 +151,5 @@ export default async function ProviderPatientDetailPage({
     </div>
   );
 }
+
 
